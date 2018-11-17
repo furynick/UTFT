@@ -217,9 +217,10 @@ void UTFT::LCD_Write_DATA_8(char VL)
     LCD_Write_Bus_8(VL);
 }
 
-void UTFT::InitLCD(byte orientation)
+void UTFT::InitLCD(byte orientation, boolean isflip)
 {
 	orient=orientation;
+  flip=isflip;
 	_hw_special_init();
 
 	pinMode(__p1,OUTPUT);
@@ -435,6 +436,13 @@ void UTFT::clrXY()
 
 void UTFT::drawRect(int x1, int y1, int x2, int y2)
 {
+  if (flip)
+  {
+    x1 = disp_x_size-x1;
+    x2 = disp_x_size-x2;
+    y1 = disp_y_size-y1;
+    y2 = disp_y_size-y2;
+  }
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -452,6 +460,13 @@ void UTFT::drawRect(int x1, int y1, int x2, int y2)
 
 void UTFT::drawRoundRect(int x1, int y1, int x2, int y2)
 {
+  if (flip)
+  {
+    x1 = disp_x_size-x1;
+    x2 = disp_x_size-x2;
+    y1 = disp_y_size-y1;
+    y2 = disp_y_size-y2;
+  }
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -475,6 +490,13 @@ void UTFT::drawRoundRect(int x1, int y1, int x2, int y2)
 
 void UTFT::fillRect(int x1, int y1, int x2, int y2)
 {
+  if (flip)
+  {
+    x1 = disp_x_size-x1;
+    x2 = disp_x_size-x2;
+    y1 = disp_y_size-y1;
+    y2 = disp_y_size-y2;
+  }
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -522,6 +544,13 @@ void UTFT::fillRect(int x1, int y1, int x2, int y2)
 
 void UTFT::fillRoundRect(int x1, int y1, int x2, int y2)
 {
+  if (flip)
+  {
+    x1 = disp_x_size-x1;
+    x2 = disp_x_size-x2;
+    y1 = disp_y_size-y1;
+    y2 = disp_y_size-y2;
+  }
 	if (x1>x2)
 	{
 		swap(int, x1, x2);
@@ -561,6 +590,11 @@ void UTFT::drawCircle(int x, int y, int radius)
 	int x1 = 0;
 	int y1 = radius;
  
+  if (flip)
+  {
+    x = disp_x_size-x;
+    y = disp_y_size-y;
+  }
 	cbi(P_CS, B_CS);
 	setXY(x, y + radius, x, y + radius);
 	LCD_Write_DATA(fch,fcl);
@@ -605,6 +639,11 @@ void UTFT::drawCircle(int x, int y, int radius)
 
 void UTFT::fillCircle(int x, int y, int radius)
 {
+  if (flip)
+  {
+    x = disp_x_size-x;
+    y = disp_y_size-y;
+  }
 	for(int y1=-radius; y1<=0; y1++) 
 		for(int x1=-radius; x1<=0; x1++)
 			if(x1*x1+y1*y1 <= radius*radius) 
@@ -729,6 +768,11 @@ void UTFT::setPixel(word color)
 
 void UTFT::drawPixel(int x, int y)
 {
+  if (flip)
+  {
+    x = disp_x_size-x;
+    y = disp_y_size-y;
+  }
 	cbi(P_CS, B_CS);
 	setXY(x, y, x, y);
 	setPixel((fch<<8)|fcl);
@@ -738,6 +782,13 @@ void UTFT::drawPixel(int x, int y)
 
 void UTFT::drawLine(int x1, int y1, int x2, int y2)
 {
+  if (flip)
+  {
+    x1 = disp_x_size-x1;
+    x2 = disp_x_size-x2;
+    y1 = disp_y_size-y1;
+    y2 = disp_y_size-y2;
+  }
 	if (y1==y2)
 		drawHLine(x1, y1, x2-x1);
 	else if (x1==x2)
@@ -942,11 +993,12 @@ void UTFT::rotateChar(byte c, int x, int y, int pos, int deg)
 	word temp; 
 	int newx,newy;
 	double radian;
+
 	radian=deg*0.0175;  
+	temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
 
 	cbi(P_CS, B_CS);
 
-	temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
 	for(j=0;j<cfont.y_size;j++) 
 	{
 		for (int zz=0; zz<(cfont.x_size/8); zz++)
@@ -996,6 +1048,16 @@ void UTFT::print(char *st, int x, int y, int deg)
 	if (x==CENTER)
 		x=((disp_y_size+1)-(stl*cfont.x_size))/2;
 	}
+
+  if (flip)
+  {
+    x = disp_x_size-x;
+    y = disp_y_size-y;
+    if (deg < 180)
+      deg = 180 - deg;
+    else
+      deg -= 180; //*/
+  }
 
 	for (i=0; i<stl; i++)
 		if (deg==0)
@@ -1143,18 +1205,26 @@ uint8_t UTFT::getFontYsize()
 
 void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int scale)
 {
-	unsigned int col;
+	unsigned int col, s=sx*sy;
 	int tx, ty, tc, tsx, tsy;
 
+  if (flip)
+  {
+    x = disp_x_size-x;
+    y = disp_y_size-y;
+  }
 	if (scale==1)
 	{
 		if (orient==PORTRAIT)
 		{
 			cbi(P_CS, B_CS);
 			setXY(x, y, x+sx-1, y+sy-1);
-			for (tc=0; tc<(sx*sy); tc++)
+			for (tc=0; tc<s; tc++)
 			{
-				col=pgm_read_word(&data[tc]);
+				if (flip)
+          col=pgm_read_word(&data[s-tc]);
+        else
+          col=pgm_read_word(&data[tc]);
 				LCD_Write_DATA(col>>8,col & 0xff);
 			}
 			sbi(P_CS, B_CS);
@@ -1167,7 +1237,10 @@ void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int sca
 				setXY(x, y+ty, x+sx-1, y+ty);
 				for (tx=sx-1; tx>=0; tx--)
 				{
-					col=pgm_read_word(&data[(ty*sx)+tx]);
+          if (flip)
+            col=pgm_read_word(&data[s-((ty*sx)+tx)]);
+          else
+            col=pgm_read_word(&data[(ty*sx)+tx]);
 					LCD_Write_DATA(col>>8,col & 0xff);
 				}
 			}

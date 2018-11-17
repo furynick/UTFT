@@ -181,7 +181,7 @@ class UTFT
 	public:
 		UTFT();
 		UTFT(byte model, int RS, int WR, int CS, int RST, int SER=0);
-		void	InitLCD(byte orientation=LANDSCAPE);
+		void	InitLCD(byte orientation=LANDSCAPE, boolean isflip=false);
 		void	clrScr();
 		void	drawPixel(int x, int y);
 		void	drawLine(int x1, int y1, int x2, int y2);
@@ -234,7 +234,7 @@ class UTFT
 		regsize			B_RS, B_WR, B_CS, B_RST, B_SDA, B_SCL, B_ALE;
 		byte			__p1, __p2, __p3, __p4, __p5;
 		_current_font	cfont;
-		boolean			_transparent;
+		boolean			_transparent, flip;
 
 		void LCD_Writ_Bus(char VH,char VL, byte mode);
 		void LCD_Write_COM(char VL);
