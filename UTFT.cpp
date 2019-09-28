@@ -1210,9 +1210,9 @@ void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int sca
 
   if (flip)
   {
-    x = disp_x_size-x;
-    y = disp_y_size-y;
-  }
+    x = disp_x_size-x-sx;
+    y = disp_y_size-y-sy;
+  } //*/
   if (scale==1)
   {
     if (orient==PORTRAIT)
@@ -1223,7 +1223,7 @@ void UTFT::drawBitmap(int x, int y, int sx, int sy, bitmapdatatype data, int sca
       {
         if (flip)
           col=pgm_read_word(&data[s-tc]);
-        else
+        else //*/
           col=pgm_read_word(&data[tc]);
         LCD_Write_DATA(col>>8,col & 0xff);
       }
